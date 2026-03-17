@@ -1,0 +1,14 @@
+# Virtual Environments
+venv/
+env/
+__pycache__/
+
+# Environment Variables & Secrets
+.env
+
+# Local Databases & Client Data
+products.json
+profile.json
+
+# Local Logs
+tracker_pipeline.log
