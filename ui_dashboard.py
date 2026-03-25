@@ -165,7 +165,6 @@ if st.session_state.logged_in:
                 label_visibility="collapsed"
             )
         
-        # Arama mantığı
         filtered_products = products_data
         if search_query:
             search_lower = search_query.lower()
@@ -174,10 +173,11 @@ if st.session_state.logged_in:
                 if search_lower in item['url'].lower() or search_lower in extract_product_name(item['url']).lower()
             ]
 
-        # --- LİSTELEME ---
+        # --- LİSTELEME VE DÜZENLEME ---
         if filtered_products:
             for idx, item in enumerate(filtered_products):
                 display_name = extract_product_name(item['url'])
+                real_idx = products_data.index(item)
                 
                 with st.container():
                     col_a, col_b, col_c = st.columns([5, 2, 2])
@@ -190,14 +190,32 @@ if st.session_state.logged_in:
                         st.markdown(f"📉 **Dip:** {item['min_price']} TL")
                     
                     with col_c:
-                        # Gerçek products_data içindeki indeksini bulup siliyoruz ki filtrelemede yanlış ürün silinmesin
-                        real_idx = products_data.index(item)
-                        if st.button("🗑️ Sil", key=f"delete_{real_idx}", use_container_width=True):
-                            products_data.pop(real_idx)
-                            save_json(PRODUCTS_FILE, products_data)
-                            st.toast("Ürün silindi.", icon="🗑️")
-                            time.sleep(0.5)
-                            st.rerun()
+                        # Düzenle ve Sil butonları için ufak bir menü (Expander)
+                        with st.expander("⚙️ İşlemler", expanded=False):
+                            # Düzenleme Formu
+                            new_price = st.number_input(
+                                "Yeni Dip Fiyat", 
+                                value=None, 
+                                placeholder="Örn: 850", 
+                                step=1.0, 
+                                key=f"edit_inp_{real_idx}"
+                            )
+                            if st.button("💾 Kaydet", key=f"save_btn_{real_idx}", use_container_width=True):
+                                products_data[real_idx]['min_price'] = float(new_price)
+                                save_json(PRODUCTS_FILE, products_data)
+                                st.toast("Fiyat güncellendi!", icon="✅")
+                                time.sleep(0.5)
+                                st.rerun()
+                                
+                            st.divider() # Araya ince çizgi
+                            
+                            # Silme İşlemi
+                            if st.button("🗑️ Ürünü Sil", key=f"delete_{real_idx}", use_container_width=True):
+                                products_data.pop(real_idx)
+                                save_json(PRODUCTS_FILE, products_data)
+                                st.toast("Ürün silindi.", icon="🗑️")
+                                time.sleep(0.5)
+                                st.rerun()
                     st.divider()
         else:
             if search_query:
